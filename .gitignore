@@ -1,0 +1,20 @@
+# Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Data
+data/
+
+# Node
+myrecipes-ui/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+*.env.local
