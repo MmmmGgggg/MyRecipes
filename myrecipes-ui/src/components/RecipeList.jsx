@@ -1,27 +1,71 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 const INGREDIENT_API = "http://localhost:8080/api/ingredients";
+const TAGS_API = "http://localhost:8080/api/recipes/tags";
 
-export default function RecipeList({ api, onSelect }) {
+export default function RecipeList({ api, onSelect, token }) {
   const [recipes, setRecipes] = useState([]);
   const [search, setSearch] = useState("");
   const [ingredients, setIngredients] = useState([]);
-  const [filterIngredient, setFilterIngredient] = useState("");
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [ingredientSearch, setIngredientSearch] = useState("");
+  const [showIngredientDropdown, setShowIngredientDropdown] = useState(false);
   const [creators, setCreators] = useState([]);
   const [filterCreator, setFilterCreator] = useState("");
+  const [allTags, setAllTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  const getHeaders = useCallback(() => {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, [token]);
 
   useEffect(() => {
     fetch(INGREDIENT_API).then(r => r.json()).then(setIngredients).catch(console.error);
     fetch(`${api}/creators`).then(r => r.json()).then(setCreators).catch(console.error);
+    fetch(TAGS_API).then(r => r.json()).then(setAllTags).catch(console.error);
   }, [api]);
 
   useEffect(() => {
-    let url = api;
-    if (filterIngredient) url = `${api}?ingredientId=${filterIngredient}`;
-    else if (filterCreator) url = `${api}?creator=${filterCreator}`;
-    else if (search) url = `${api}?search=${search}`;
-    fetch(url).then(r => r.json()).then(setRecipes).catch(console.error);
-  }, [api, search, filterIngredient, filterCreator]);
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    if (filterCreator) params.append("creator", filterCreator);
+    selectedTags.forEach(t => params.append("tags", t));
+    selectedIngredients.forEach(i => params.append("ingredientIds", i.id));
+    const query = params.toString();
+    const url = query ? `${api}?${query}` : api;
+
+    fetch(url, { headers: getHeaders() })
+      .then(r => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
+      .then(setRecipes)
+      .catch(err => {
+        console.error("Fetch error:", err);
+        setRecipes([]);
+      });
+  }, [api, search, selectedIngredients, filterCreator, selectedTags, token, getHeaders]);
+
+  const filteredIngredients = ingredients.filter(i =>
+    i.name.toLowerCase().includes(ingredientSearch.toLowerCase())
+    && !selectedIngredients.some(s => s.id === i.id)
+  );
+
+  const addIngredient = (ingredient) => {
+    setSelectedIngredients(prev => [...prev, ingredient]);
+    setIngredientSearch("");
+    setShowIngredientDropdown(false);
+  };
+
+  const removeIngredient = (id) => {
+    setSelectedIngredients(prev => prev.filter(i => i.id !== id));
+  };
+
+  const toggleTag = (tag) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
 
   const ingredientSummary = (recipe) => {
     if (!recipe.recipeIngredients?.length) return "No ingredients";
@@ -34,31 +78,80 @@ export default function RecipeList({ api, onSelect }) {
         type="text"
         placeholder="Search recipes..."
         value={search}
-        onChange={e => { setSearch(e.target.value); setFilterIngredient(""); setFilterCreator(""); }}
+        onChange={e => setSearch(e.target.value)}
         className="search-input"
       />
       <div className="filter-row">
         <select
           className="filter-select"
-          value={filterIngredient}
-          onChange={e => { setFilterIngredient(e.target.value); setSearch(""); setFilterCreator(""); }}
-        >
-          <option value="">Filter by ingredient...</option>
-          {ingredients.map(i => (
-            <option key={i.id} value={i.id}>{i.name}</option>
-          ))}
-        </select>
-        <select
-          className="filter-select"
           value={filterCreator}
-          onChange={e => { setFilterCreator(e.target.value); setSearch(""); setFilterIngredient(""); }}
+          onChange={e => setFilterCreator(e.target.value)}
         >
-          <option value="">Filter by creator...</option>
+          <option value="">All creators</option>
           {creators.map((c, i) => (
             <option key={i} value={c}>{c}</option>
           ))}
         </select>
       </div>
+
+      {allTags.length > 0 && (
+        <div className="tag-filter">
+          <div className="ingredient-chips">
+            {allTags.map(tag => (
+              <button
+                key={tag}
+                type="button"
+                className={`chip ${selectedTags.includes(tag) ? "chip-active" : ""}`}
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          {selectedTags.length > 0 && (
+            <button type="button" className="clear-filters" onClick={() => setSelectedTags([])}>
+              Clear tags
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="ingredient-filter">
+        <div className="ingredient-search-wrapper">
+          <input
+            type="text"
+            placeholder="Type to filter by ingredient..."
+            value={ingredientSearch}
+            onChange={e => { setIngredientSearch(e.target.value); setShowIngredientDropdown(true); }}
+            onFocus={() => setShowIngredientDropdown(true)}
+            onBlur={() => setTimeout(() => setShowIngredientDropdown(false), 200)}
+            className="search-input"
+          />
+          {showIngredientDropdown && ingredientSearch && filteredIngredients.length > 0 && (
+            <div className="suggestions">
+              {filteredIngredients.slice(0, 8).map(i => (
+                <div key={i.id} className="suggestion" onMouseDown={() => addIngredient(i)}>
+                  {i.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {selectedIngredients.length > 0 && (
+          <div className="selected-ingredients">
+            {selectedIngredients.map(i => (
+              <span key={i.id} className="chip chip-active">
+                {i.name}
+                <button type="button" className="chip-remove" onClick={() => removeIngredient(i.id)}>✕</button>
+              </span>
+            ))}
+            <button type="button" className="clear-filters" onClick={() => setSelectedIngredients([])}>
+              Clear all
+            </button>
+          </div>
+        )}
+      </div>
+
       {recipes.length === 0 ? (
         <p className="empty">No recipes found. Add your first one!</p>
       ) : (
@@ -67,6 +160,13 @@ export default function RecipeList({ api, onSelect }) {
             <div key={r.id} className="recipe-card" onClick={() => onSelect(r.id)}>
               <h3>{r.name}</h3>
               <p>{ingredientSummary(r).substring(0, 80)}</p>
+              <div className="card-badges">
+                {r.tags?.map(tag => (
+                  <span key={tag} className="tag-badge">{tag}</span>
+                ))}
+                {r.visibility === "PRIVATE" && <span className="visibility-badge">🔒</span>}
+                {r.visibility === "SHARED" && <span className="visibility-badge">👥</span>}
+              </div>
             </div>
           ))}
         </div>

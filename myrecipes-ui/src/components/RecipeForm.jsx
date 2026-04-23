@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
 
 const INGREDIENT_API = "http://localhost:8080/api/ingredients";
+const TAGS_API = "http://localhost:8080/api/recipes/tags";
 
-export default function RecipeForm({ api, recipe, onSave, onCancel }) {
+export default function RecipeForm({ api, recipe, onSave, onCancel, token, userName }) {
   const [name, setName] = useState(recipe?.name || "");
   const [instructions, setInstructions] = useState(recipe?.instructions || "");
   const [imageUrl, setImageUrl] = useState(recipe?.imageUrl || "");
-  const [creator, setCreator] = useState(recipe?.creator || "");
+  const [creator] = useState(recipe?.creator || userName || "");
   const [language, setLanguage] = useState(recipe?.language || "");
+  const [visibility, setVisibility] = useState(recipe?.visibility || "PRIVATE");
+  const [tags, setTags] = useState(recipe?.tags || []);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [items, setItems] = useState(
     recipe?.recipeIngredients?.map(ri => ({ name: ri.ingredient?.name || "", amount: ri.amount || "" })) || [{ name: "", amount: "" }]
   );
@@ -17,6 +23,7 @@ export default function RecipeForm({ api, recipe, onSave, onCancel }) {
 
   useEffect(() => {
     fetch(INGREDIENT_API).then(r => r.json()).then(setAllIngredients).catch(console.error);
+    fetch(TAGS_API).then(r => r.json()).then(setAllTags).catch(console.error);
   }, []);
 
   const updateItem = (index, field, value) => {
@@ -36,8 +43,36 @@ export default function RecipeForm({ api, recipe, onSave, onCancel }) {
   };
 
   const addItem = () => setItems([...items, { name: "", amount: "" }]);
-
   const removeItem = (index) => setItems(items.filter((_, i) => i !== index));
+
+  const handleTagInput = (value) => {
+    setTagInput(value);
+    if (value) {
+      setTagSuggestions(allTags.filter(t =>
+        t.toLowerCase().includes(value.toLowerCase()) && !tags.includes(t)
+      ));
+    } else {
+      setTagSuggestions([]);
+    }
+  };
+
+  const addTag = (tag) => {
+    const trimmed = tag.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+    }
+    setTagInput("");
+    setTagSuggestions([]);
+  };
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (tagInput.trim()) addTag(tagInput);
+    }
+  };
+
+  const removeTag = (tag) => setTags(tags.filter(t => t !== tag));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,8 +83,11 @@ export default function RecipeForm({ api, recipe, onSave, onCancel }) {
     const url = recipe ? `${api}/${recipe.id}` : api;
     fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, instructions, imageUrl, creator, language, recipeIngredients }),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ name, instructions, imageUrl, creator, language, visibility, tags, recipeIngredients }),
     }).then(onSave).catch(console.error);
   };
 
@@ -87,7 +125,38 @@ export default function RecipeForm({ api, recipe, onSave, onCancel }) {
 
       <textarea placeholder="Instructions" value={instructions} onChange={e => setInstructions(e.target.value)} rows={6} required />
       <input placeholder="Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
-      <input placeholder="Creator (e.g. your name)" value={creator} onChange={e => setCreator(e.target.value)} />
+      <input placeholder="Creator" value={creator} readOnly className="readonly-input" />
+
+      <h3>Tags</h3>
+      <div className="tag-input-wrapper">
+        <div className="selected-ingredients">
+          {tags.map(tag => (
+            <span key={tag} className="chip chip-active">
+              {tag}
+              <button type="button" className="chip-remove" onClick={() => removeTag(tag)}>✕</button>
+            </span>
+          ))}
+        </div>
+        <div className="ingredient-search-wrapper">
+          <input
+            placeholder="Type a tag and press Enter (e.g. Vegetarian, Quick, Dessert)"
+            value={tagInput}
+            onChange={e => handleTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
+            onBlur={() => setTimeout(() => setTagSuggestions([]), 200)}
+          />
+          {tagSuggestions.length > 0 && (
+            <div className="suggestions">
+              {tagSuggestions.map(t => (
+                <div key={t} className="suggestion" onMouseDown={() => addTag(t)}>
+                  {t}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <select value={language} onChange={e => setLanguage(e.target.value)} className="language-select">
         <option value="">Select language...</option>
         <option value="English">English</option>
@@ -99,6 +168,11 @@ export default function RecipeForm({ api, recipe, onSave, onCancel }) {
         <option value="Japanese">Japanese</option>
         <option value="Indian">Indian</option>
         <option value="Other">Other</option>
+      </select>
+      <select value={visibility} onChange={e => setVisibility(e.target.value)} className="language-select">
+        <option value="PRIVATE">🔒 Private</option>
+        <option value="SHARED">👥 Shared (Friends)</option>
+        <option value="PUBLIC">🌍 Public</option>
       </select>
       <div className="form-buttons">
         <button type="submit">{recipe ? "Update" : "Add"}</button>
