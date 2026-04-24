@@ -22,6 +22,12 @@ public class Recipe {
 
     private String language;
 
+    private Integer servings;
+
+    private Integer prepTimeMinutes;
+
+    private Integer cookTimeMinutes;
+
     @Enumerated(EnumType.STRING)
     private Visibility visibility = Visibility.PRIVATE;
 
@@ -56,6 +62,20 @@ public class Recipe {
 
     public String getLanguage() { return language; }
     public void setLanguage(String language) { this.language = language; }
+
+    public Integer getServings() { return servings; }
+    public void setServings(Integer servings) { this.servings = servings; }
+
+    public Integer getPrepTimeMinutes() { return prepTimeMinutes; }
+    public void setPrepTimeMinutes(Integer prepTimeMinutes) { this.prepTimeMinutes = prepTimeMinutes; }
+
+    public Integer getCookTimeMinutes() { return cookTimeMinutes; }
+    public void setCookTimeMinutes(Integer cookTimeMinutes) { this.cookTimeMinutes = cookTimeMinutes; }
+
+    public Integer getTotalTimeMinutes() {
+        if (prepTimeMinutes == null && cookTimeMinutes == null) return null;
+        return (prepTimeMinutes != null ? prepTimeMinutes : 0) + (cookTimeMinutes != null ? cookTimeMinutes : 0);
+    }
 
     public Visibility getVisibility() { return visibility; }
     public void setVisibility(Visibility visibility) { this.visibility = visibility; }

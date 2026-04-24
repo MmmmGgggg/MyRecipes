@@ -121,6 +121,9 @@ public class RecipeController {
                     existing.setImageUrl(recipe.getImageUrl());
                     existing.setCreator(recipe.getCreator());
                     existing.setLanguage(recipe.getLanguage());
+                    existing.setServings(recipe.getServings());
+                    existing.setPrepTimeMinutes(recipe.getPrepTimeMinutes());
+                    existing.setCookTimeMinutes(recipe.getCookTimeMinutes());
                     existing.setVisibility(recipe.getVisibility() != null ? recipe.getVisibility() : existing.getVisibility());
                     existing.setTags(recipe.getTags() != null ? recipe.getTags() : existing.getTags());
                     existing.getRecipeIngredients().clear();

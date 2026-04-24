@@ -12,8 +12,12 @@ export default function RecipeList({ api, onSelect, token }) {
   const [showIngredientDropdown, setShowIngredientDropdown] = useState(false);
   const [creators, setCreators] = useState([]);
   const [filterCreator, setFilterCreator] = useState("");
+  const [creatorSearch, setCreatorSearch] = useState("");
+  const [showCreatorDropdown, setShowCreatorDropdown] = useState(false);
   const [allTags, setAllTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [tagSearch, setTagSearch] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
 
   const getHeaders = useCallback(() => {
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -67,6 +71,23 @@ export default function RecipeList({ api, onSelect, token }) {
     );
   };
 
+  const addTag = (tag) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags(prev => [...prev, tag]);
+    }
+    setTagSearch("");
+    setShowTagDropdown(false);
+  };
+
+  const removeTag = (tag) => {
+    setSelectedTags(prev => prev.filter(t => t !== tag));
+  };
+
+  const filteredTags = allTags.filter(t =>
+    t.toLowerCase().includes(tagSearch.toLowerCase())
+    && !selectedTags.includes(t)
+  );
+
   const ingredientSummary = (recipe) => {
     if (!recipe.recipeIngredients?.length) return "No ingredients";
     return recipe.recipeIngredients.map(ri => ri.ingredient?.name).join(", ");
@@ -82,36 +103,63 @@ export default function RecipeList({ api, onSelect, token }) {
         className="search-input"
       />
       <div className="filter-row">
-        <select
-          className="filter-select"
-          value={filterCreator}
-          onChange={e => setFilterCreator(e.target.value)}
-        >
-          <option value="">All creators</option>
-          {creators.map((c, i) => (
-            <option key={i} value={c}>{c}</option>
-          ))}
-        </select>
+        <div className="ingredient-search-wrapper">
+          <input
+            type="text"
+            placeholder="Filter by creator..."
+            value={creatorSearch}
+            onChange={e => { setCreatorSearch(e.target.value); setShowCreatorDropdown(true); setFilterCreator(""); }}
+            onFocus={() => setShowCreatorDropdown(true)}
+            onBlur={() => setTimeout(() => setShowCreatorDropdown(false), 200)}
+            className="search-input"
+          />
+          {showCreatorDropdown && creatorSearch && creators.filter(c => c.toLowerCase().includes(creatorSearch.toLowerCase())).length > 0 && (
+            <div className="suggestions">
+              {creators.filter(c => c.toLowerCase().includes(creatorSearch.toLowerCase())).slice(0, 8).map((c, i) => (
+                <div key={i} className="suggestion" onMouseDown={() => { setFilterCreator(c); setCreatorSearch(c); setShowCreatorDropdown(false); }}>
+                  {c}
+                </div>
+              ))}
+            </div>
+          )}
+          {filterCreator && (
+            <button type="button" className="clear-filters" onClick={() => { setFilterCreator(""); setCreatorSearch(""); }}>Clear creator</button>
+          )}
+        </div>
       </div>
 
       {allTags.length > 0 && (
         <div className="tag-filter">
-          <div className="ingredient-chips">
-            {allTags.map(tag => (
-              <button
-                key={tag}
-                type="button"
-                className={`chip ${selectedTags.includes(tag) ? "chip-active" : ""}`}
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </button>
-            ))}
+          <div className="ingredient-search-wrapper">
+            <input
+              type="text"
+              placeholder="Type to filter by tag..."
+              value={tagSearch}
+              onChange={e => { setTagSearch(e.target.value); setShowTagDropdown(true); }}
+              onFocus={() => setShowTagDropdown(true)}
+              onBlur={() => setTimeout(() => setShowTagDropdown(false), 200)}
+              className="search-input"
+            />
+            {showTagDropdown && tagSearch && filteredTags.length > 0 && (
+              <div className="suggestions">
+                {filteredTags.slice(0, 8).map(t => (
+                  <div key={t} className="suggestion" onMouseDown={() => addTag(t)}>
+                    {t}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {selectedTags.length > 0 && (
-            <button type="button" className="clear-filters" onClick={() => setSelectedTags([])}>
-              Clear tags
-            </button>
+            <div className="selected-ingredients">
+              {selectedTags.map(tag => (
+                <span key={tag} className="chip chip-active">
+                  {tag}
+                  <button type="button" className="chip-remove" onClick={() => removeTag(tag)}>✕</button>
+                </span>
+              ))}
+              <button type="button" className="clear-filters" onClick={() => setSelectedTags([])}>Clear tags</button>
+            </div>
           )}
         </div>
       )}

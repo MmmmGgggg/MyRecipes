@@ -9,6 +9,9 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
   const [imageUrl, setImageUrl] = useState(recipe?.imageUrl || "");
   const [creator] = useState(recipe?.creator || userName || "");
   const [language, setLanguage] = useState(recipe?.language || "");
+  const [servings, setServings] = useState(recipe?.servings || "");
+  const [prepTime, setPrepTime] = useState(recipe?.prepTimeMinutes || "");
+  const [cookTime, setCookTime] = useState(recipe?.cookTimeMinutes || "");
   const [visibility, setVisibility] = useState(recipe?.visibility || "PRIVATE");
   const [tags, setTags] = useState(recipe?.tags || []);
   const [tagInput, setTagInput] = useState("");
@@ -76,6 +79,8 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("Token:", token ? "present" : "missing");
+    console.log("Visibility:", visibility);
     const recipeIngredients = items
       .filter(i => i.name.trim())
       .map(i => ({ ingredient: { name: i.name.trim() }, amount: i.amount }));
@@ -87,8 +92,16 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ name, instructions, imageUrl, creator, language, visibility, tags, recipeIngredients }),
-    }).then(onSave).catch(console.error);
+      body: JSON.stringify({ name, instructions, imageUrl, creator, language, visibility, tags,
+        servings: servings || null, prepTimeMinutes: prepTime || null, cookTimeMinutes: cookTime || null,
+        recipeIngredients }),
+    }).then(r => {
+      if (!r.ok) {
+        r.text().then(t => console.error("Save failed:", r.status, t));
+        return;
+      }
+      onSave();
+    }).catch(err => console.error("Save error:", err));
   };
 
   return (
@@ -157,18 +170,12 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
         </div>
       </div>
 
-      <select value={language} onChange={e => setLanguage(e.target.value)} className="language-select">
-        <option value="">Select language...</option>
-        <option value="English">English</option>
-        <option value="Spanish">Spanish</option>
-        <option value="French">French</option>
-        <option value="Italian">Italian</option>
-        <option value="German">German</option>
-        <option value="Chinese">Chinese</option>
-        <option value="Japanese">Japanese</option>
-        <option value="Indian">Indian</option>
-        <option value="Other">Other</option>
-      </select>
+      <input placeholder="Language (e.g. Italian, Serbian, Thai)" value={language} onChange={e => setLanguage(e.target.value)} />
+      <div className="time-row">
+        <input type="number" placeholder="Servings" value={servings} onChange={e => setServings(e.target.value)} min="1" />
+        <input type="number" placeholder="Prep time (min)" value={prepTime} onChange={e => setPrepTime(e.target.value)} min="0" />
+        <input type="number" placeholder="Cook time (min)" value={cookTime} onChange={e => setCookTime(e.target.value)} min="0" />
+      </div>
       <select value={visibility} onChange={e => setVisibility(e.target.value)} className="language-select">
         <option value="PRIVATE">🔒 Private</option>
         <option value="SHARED">👥 Shared (Friends)</option>

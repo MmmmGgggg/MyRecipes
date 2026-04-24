@@ -85,6 +85,9 @@ header button:hover { background: #e55a2b; }
 .detail-tags .tag-badge { font-size: 0.85rem; padding: 4px 12px; }
 .tag-filter { margin-bottom: 16px; }
 .tag-input-wrapper { margin-bottom: 12px; }
+.time-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.time-row input { flex: 1; }
+.recipe-time-info { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; color: #666; font-size: 0.9rem; }
 .ingredient-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip:hover { border-color: #ff6b35; color: #ff6b35; }
 .chip-active:hover { color: white; }

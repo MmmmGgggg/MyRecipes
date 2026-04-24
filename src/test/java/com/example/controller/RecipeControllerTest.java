@@ -362,4 +362,186 @@ class RecipeControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].name").value("Old Recipe"));
     }
+
+    @Test
+    void shouldCreateRecipeWithSharedVisibility() throws Exception {
+        String json = """
+                {"name": "Family Pasta", "instructions": "Cook it", "visibility": "SHARED"}
+                """;
+
+        mvc.perform(post("/api/recipes")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.visibility").value("SHARED"))
+                .andExpect(jsonPath("$.name").value("Family Pasta"));
+    }
+
+    @Test
+    void shouldNotSeeSharedRecipeWithoutAuth() throws Exception {
+        Recipe saved = recipeRepo.save(createRecipe("Shared Recipe", "John", "Italian", Visibility.SHARED));
+
+        mvc.perform(get("/api/recipes/" + saved.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldSeeOwnSharedRecipeWhenLoggedIn() throws Exception {
+        Recipe saved = recipeRepo.save(createRecipe("Shared Recipe", "John", "Italian", Visibility.SHARED));
+
+        mvc.perform(get("/api/recipes/" + saved.getId())
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Shared Recipe"));
+    }
+
+    @Test
+    void shouldNotSeeOtherUsersSharedRecipeWithoutFriendship() throws Exception {
+        User other = new User();
+        other.setEmail("other@example.com");
+        other.setPassword(passwordEncoder.encode("password"));
+        other.setName("Other");
+        other = userRepo.save(other);
+
+        Recipe shared = createRecipe("Other Shared", "Other", "Italian", Visibility.SHARED);
+        shared.setUser(other);
+        recipeRepo.save(shared);
+
+        mvc.perform(get("/api/recipes")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldCreateRecipeWithTags() throws Exception {
+        String json = """
+                {"name": "Veggie Bowl", "instructions": "Mix it", "visibility": "PUBLIC", "tags": ["Vegetarian", "Quick"]}
+                """;
+
+        mvc.perform(post("/api/recipes")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tags", hasSize(2)))
+                .andExpect(jsonPath("$.tags", containsInAnyOrder("Vegetarian", "Quick")));
+    }
+
+    @Test
+    void shouldFilterByTags() throws Exception {
+        Recipe veggie = createRecipe("Veggie Bowl", "John", "Italian", Visibility.PUBLIC);
+        veggie.setTags(java.util.List.of("Vegetarian", "Quick"));
+        recipeRepo.save(veggie);
+
+        Recipe meat = createRecipe("Steak", "John", "Italian", Visibility.PUBLIC);
+        meat.setTags(java.util.List.of("Quick"));
+        recipeRepo.save(meat);
+
+        mvc.perform(get("/api/recipes?tags=Vegetarian"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name").value("Veggie Bowl"));
+    }
+
+    @Test
+    void shouldFilterByMultipleTags() throws Exception {
+        Recipe vegQuick = createRecipe("Veggie Bowl", "John", "Italian", Visibility.PUBLIC);
+        vegQuick.setTags(java.util.List.of("Vegetarian", "Quick"));
+        recipeRepo.save(vegQuick);
+
+        Recipe vegSlow = createRecipe("Veggie Stew", "John", "Italian", Visibility.PUBLIC);
+        vegSlow.setTags(java.util.List.of("Vegetarian"));
+        recipeRepo.save(vegSlow);
+
+        mvc.perform(get("/api/recipes?tags=Vegetarian&tags=Quick"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name").value("Veggie Bowl"));
+    }
+
+    @Test
+    void shouldCreateRecipeWithServingsAndTime() throws Exception {
+        String json = """
+                {"name": "Pasta", "instructions": "Cook it", "visibility": "PUBLIC",
+                 "servings": 4, "prepTimeMinutes": 10, "cookTimeMinutes": 20}
+                """;
+
+        mvc.perform(post("/api/recipes")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.servings").value(4))
+                .andExpect(jsonPath("$.prepTimeMinutes").value(10))
+                .andExpect(jsonPath("$.cookTimeMinutes").value(20))
+                .andExpect(jsonPath("$.totalTimeMinutes").value(30));
+    }
+
+    @Test
+    void shouldFilterBySearch() throws Exception {
+        recipeRepo.save(createRecipe("Pasta Carbonara", "John", "Italian", Visibility.PUBLIC));
+        recipeRepo.save(createRecipe("Greek Salad", "Maria", "Greek", Visibility.PUBLIC));
+
+        mvc.perform(get("/api/recipes?search=pasta"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name").value("Pasta Carbonara"));
+    }
+
+    @Test
+    void shouldFilterByCreator() throws Exception {
+        recipeRepo.save(createRecipe("Pasta", "John", "Italian", Visibility.PUBLIC));
+        recipeRepo.save(createRecipe("Tacos", "Maria", "Spanish", Visibility.PUBLIC));
+
+        mvc.perform(get("/api/recipes?creator=Maria"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].creator").value("Maria"));
+    }
+
+    @Test
+    void shouldFilterByMultipleIngredients() throws Exception {
+        Ingredient egg = ingredientRepo.save(new Ingredient("egg"));
+        Ingredient flour = ingredientRepo.save(new Ingredient("flour"));
+        Ingredient sugar = ingredientRepo.save(new Ingredient("sugar"));
+
+        Recipe cake = createRecipe("Cake", "John", "English", Visibility.PUBLIC);
+        cake = recipeRepo.save(cake);
+        RecipeIngredient ri1 = new RecipeIngredient();
+        ri1.setRecipe(cake); ri1.setIngredient(egg); ri1.setAmount("3");
+        RecipeIngredient ri2 = new RecipeIngredient();
+        ri2.setRecipe(cake); ri2.setIngredient(flour); ri2.setAmount("200g");
+        RecipeIngredient ri3 = new RecipeIngredient();
+        ri3.setRecipe(cake); ri3.setIngredient(sugar); ri3.setAmount("100g");
+        cake.getRecipeIngredients().addAll(java.util.List.of(ri1, ri2, ri3));
+        recipeRepo.save(cake);
+
+        Recipe omelette = createRecipe("Omelette", "John", "French", Visibility.PUBLIC);
+        omelette = recipeRepo.save(omelette);
+        RecipeIngredient ri4 = new RecipeIngredient();
+        ri4.setRecipe(omelette); ri4.setIngredient(egg); ri4.setAmount("2");
+        omelette.getRecipeIngredients().add(ri4);
+        recipeRepo.save(omelette);
+
+        mvc.perform(get("/api/recipes?ingredientIds=" + egg.getId() + "&ingredientIds=" + flour.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name").value("Cake"));
+    }
+
+    @Test
+    void shouldAutoFillCreatorFromUserName() throws Exception {
+        String json = """
+                {"name": "Pasta", "instructions": "Cook it", "visibility": "PUBLIC"}
+                """;
+
+        mvc.perform(post("/api/recipes")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.creator").value("Test User"));
+    }
 }

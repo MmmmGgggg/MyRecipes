@@ -32,6 +32,14 @@ export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail
       )}
       {recipe.creator && <p className="recipe-meta">👤 {recipe.creator}</p>}
       {recipe.language && <p className="recipe-meta">🌐 {recipe.language}</p>}
+      {(recipe.servings || recipe.prepTimeMinutes || recipe.cookTimeMinutes) && (
+        <div className="recipe-time-info">
+          {recipe.servings && <span>🍽️ {recipe.servings} servings</span>}
+          {recipe.prepTimeMinutes && <span>⏱️ Prep: {recipe.prepTimeMinutes} min</span>}
+          {recipe.cookTimeMinutes && <span>🔥 Cook: {recipe.cookTimeMinutes} min</span>}
+          {recipe.totalTimeMinutes && <span>⏰ Total: {recipe.totalTimeMinutes} min</span>}
+        </div>
+      )}
       <h3>Ingredients</h3>
       <ul className="ingredient-list">
         {recipe.recipeIngredients?.map((ri, i) => (
