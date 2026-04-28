@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const AUTH_API = "http://localhost:8080/api/auth";
+const AUTH_API = `${window.location.protocol}//${window.location.hostname}:8080/api/auth`;
 
 export default function AuthForm({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);

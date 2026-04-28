@@ -5,7 +5,7 @@ import RecipeDetail from "./components/RecipeDetail";
 import AuthForm from "./components/AuthForm";
 import "./App.css";
 
-const API = "http://localhost:8080/api/recipes";
+const API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes`;
 
 function App() {
   const [view, setView] = useState("list");

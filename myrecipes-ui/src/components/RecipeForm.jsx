@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-const INGREDIENT_API = "http://localhost:8080/api/ingredients";
-const TAGS_API = "http://localhost:8080/api/recipes/tags";
+const INGREDIENT_API = `${window.location.protocol}//${window.location.hostname}:8080/api/ingredients`;
+const TAGS_API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes/tags`;
 
 export default function RecipeForm({ api, recipe, onSave, onCancel, token, userName }) {
   const [name, setName] = useState(recipe?.name || "");
