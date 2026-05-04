@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 
 const INGREDIENT_API = `${window.location.protocol}//${window.location.hostname}:8080/api/ingredients`;
 const TAGS_API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes/tags`;
+const IMAGE_API = `${window.location.protocol}//${window.location.hostname}:8080/api/images`;
 
 export default function RecipeForm({ api, recipe, onSave, onCancel, token, userName }) {
   const [name, setName] = useState(recipe?.name || "");
   const [instructions, setInstructions] = useState(recipe?.instructions || "");
   const [imageUrl, setImageUrl] = useState(recipe?.imageUrl || "");
+  const [imageUploading, setImageUploading] = useState(false);
   const [creator] = useState(recipe?.creator || userName || "");
   const [language, setLanguage] = useState(recipe?.language || "");
   const [servings, setServings] = useState(recipe?.servings || "");
@@ -89,6 +91,31 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
 
   const removeTag = (tag) => setTags(tags.filter(t => t !== tag));
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch(IMAGE_API, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImageUrl(data.url);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Upload failed");
+      }
+    } catch {
+      alert("Upload failed");
+    }
+    setImageUploading(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const unconfirmed = items.filter(i => i.name.trim() && !i.confirmed);
@@ -158,7 +185,16 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
       <button type="button" onClick={addItem} className="add-ingredient-btn">+ Add Ingredient</button>
 
       <textarea placeholder="Instructions" value={instructions} onChange={e => setInstructions(e.target.value)} rows={6} required />
-      <input placeholder="Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
+      <div className="image-upload-section">
+        {imageUrl && (
+          <img src={imageUrl.startsWith("/") ? `${window.location.protocol}//${window.location.hostname}:8080${imageUrl}` : imageUrl} alt="Recipe" className="image-preview" />
+        )}
+        <label className="file-upload-btn">
+          {imageUploading ? "Uploading..." : "📷 Upload Image"}
+          <input type="file" accept="image/*" onChange={handleImageUpload} hidden disabled={imageUploading} />
+        </label>
+        <input placeholder="Or paste image URL" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
+      </div>
       <input placeholder="Creator" value={creator} readOnly className="readonly-input" />
 
       <h3>Tags</h3>

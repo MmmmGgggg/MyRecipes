@@ -8,6 +8,7 @@ target/
 
 # Data
 data/
+uploads/
 
 # Node
 myrecipes-ui/node_modules/

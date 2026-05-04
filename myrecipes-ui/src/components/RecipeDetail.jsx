@@ -22,7 +22,7 @@ export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail
   return (
     <div className="recipe-detail">
       <button onClick={onBack} className="back-btn">← Back</button>
-      {recipe.imageUrl && <img src={recipe.imageUrl} alt={recipe.name} />}
+      {recipe.imageUrl && <img src={recipe.imageUrl.startsWith("/") ? `${window.location.protocol}//${window.location.hostname}:8080${recipe.imageUrl}` : recipe.imageUrl} alt={recipe.name} />}
       <h2>{recipe.name}</h2>
       {recipe.visibility && <p className="recipe-meta">{({PRIVATE:"🔒 Private",SHARED:"👥 Shared",PUBLIC:"🌍 Public"})[recipe.visibility]}</p>}
       {recipe.tags?.length > 0 && (
