@@ -44,7 +44,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Italian", 4, 10, 20,
                 List.of("Quick", "Comfort Food"),
                 new String[]{"spaghetti", "400g"}, new String[]{"pancetta", "150g"},
-                new String[]{"eggs", "3"}, new String[]{"parmesan", "100g"},
+                new String[]{"egg", "3"}, new String[]{"parmesan", "100g"},
                 new String[]{"black pepper", "to taste"});
 
         createRecipe(chef, "Thai Green Curry",
@@ -53,22 +53,22 @@ public class DataInitializer implements CommandLineRunner {
                 List.of("Spicy", "Gluten Free"),
                 new String[]{"chicken breast", "500g"}, new String[]{"coconut milk", "400ml"},
                 new String[]{"green curry paste", "3 tbsp"}, new String[]{"bell pepper", "1"},
-                new String[]{"bamboo shoots", "100g"}, new String[]{"fish sauce", "2 tbsp"},
+                new String[]{"bamboo shoot", "100g"}, new String[]{"fish sauce", "2 tbsp"},
                 new String[]{"jasmine rice", "300g"});
 
         createRecipe(chef, "Greek Salad",
                 "1. Chop tomatoes, cucumber, and onion\n2. Add olives and capers\n3. Top with feta cheese\n4. Drizzle with olive oil and oregano\n5. Season with salt and pepper",
                 "Greek", 2, 10, 0,
                 List.of("Vegetarian", "Quick", "Healthy", "Gluten Free"),
-                new String[]{"tomatoes", "3 large"}, new String[]{"cucumber", "1"},
+                new String[]{"tomato", "3 large"}, new String[]{"cucumber", "1"},
                 new String[]{"red onion", "1/2"}, new String[]{"feta cheese", "150g"},
-                new String[]{"kalamata olives", "handful"}, new String[]{"olive oil", "3 tbsp"});
+                new String[]{"kalamata olive", "handful"}, new String[]{"olive oil", "3 tbsp"});
 
         createRecipe(chef, "Banana Pancakes",
                 "1. Mash bananas in a bowl\n2. Mix in eggs and vanilla\n3. Add flour, baking powder, and milk\n4. Heat butter in a pan\n5. Pour small circles of batter\n6. Flip when bubbles form\n7. Serve with maple syrup and berries",
                 "American", 3, 10, 15,
                 List.of("Vegetarian", "Breakfast", "Quick"),
-                new String[]{"bananas", "2 ripe"}, new String[]{"eggs", "2"},
+                new String[]{"banana", "2 ripe"}, new String[]{"egg", "2"},
                 new String[]{"flour", "150g"}, new String[]{"milk", "100ml"},
                 new String[]{"baking powder", "1 tsp"}, new String[]{"vanilla extract", "1 tsp"});
 
@@ -76,8 +76,8 @@ public class DataInitializer implements CommandLineRunner {
                 "1. Sauté onion, carrot, and celery in olive oil\n2. Add garlic and cumin, cook 1 minute\n3. Add lentils and vegetable broth\n4. Bring to boil, then simmer 25 minutes\n5. Season with lemon juice, salt, and pepper\n6. Blend partially for creamy texture",
                 "Middle Eastern", 6, 10, 30,
                 List.of("Vegan", "Healthy", "Comfort Food"),
-                new String[]{"red lentils", "300g"}, new String[]{"onion", "1"},
-                new String[]{"carrots", "2"}, new String[]{"celery", "2 stalks"},
+                new String[]{"red lentil", "300g"}, new String[]{"onion", "1"},
+                new String[]{"carrot", "2"}, new String[]{"celery", "2 stalks"},
                 new String[]{"garlic", "3 cloves"}, new String[]{"vegetable broth", "1.5L"},
                 new String[]{"cumin", "1 tsp"}, new String[]{"lemon", "1"});
     }

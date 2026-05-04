@@ -544,4 +544,32 @@ class RecipeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.creator").value("Test User"));
     }
+
+    @Test
+    void shouldReuseExistingIngredientWithDifferentCasing() throws Exception {
+        ingredientRepo.save(new Ingredient("egg"));
+
+        String json = """
+                {
+                    "name": "Omelette",
+                    "instructions": "Cook it",
+                    "visibility": "PUBLIC",
+                    "recipeIngredients": [
+                        {"ingredient": {"name": "Egg"}, "amount": "3"},
+                        {"ingredient": {"name": " EGG "}, "amount": "2"}
+                    ]
+                }
+                """;
+
+        mvc.perform(post("/api/recipes")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recipeIngredients[0].ingredient.name").value("egg"))
+                .andExpect(jsonPath("$.recipeIngredients[1].ingredient.name").value("egg"));
+
+        mvc.perform(get("/api/ingredients"))
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
 }

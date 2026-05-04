@@ -24,7 +24,8 @@ public class IngredientController {
 
     @PostMapping
     public Ingredient create(@RequestBody Ingredient ingredient) {
-        return repo.findByNameIgnoreCase(ingredient.getName())
-                .orElseGet(() -> repo.save(ingredient));
+        String normalized = ingredient.getName().trim().toLowerCase();
+        return repo.findByNameIgnoreCase(normalized)
+                .orElseGet(() -> repo.save(new Ingredient(normalized)));
     }
 }

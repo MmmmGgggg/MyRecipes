@@ -149,8 +149,9 @@ public class RecipeController {
             ri.setRecipe(recipe);
             Ingredient ing = ri.getIngredient();
             if (ing != null && ing.getName() != null) {
-                ri.setIngredient(ingredientRepo.findByNameIgnoreCase(ing.getName())
-                        .orElseGet(() -> ingredientRepo.save(new Ingredient(ing.getName()))));
+                String normalized = ing.getName().trim().toLowerCase();
+                ri.setIngredient(ingredientRepo.findByNameIgnoreCase(normalized)
+                        .orElseGet(() -> ingredientRepo.save(new Ingredient(normalized))));
             }
         }
     }

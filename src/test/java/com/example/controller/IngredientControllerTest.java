@@ -93,6 +93,21 @@ class IngredientControllerTest {
     }
 
     @Test
+    void shouldNormalizeWhitespace() throws Exception {
+        ingredientRepo.save(new Ingredient("salt"));
+
+        mvc.perform(post("/api/ingredients")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(new Ingredient("  Salt  "))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("salt"));
+
+        mvc.perform(get("/api/ingredients"))
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
     void shouldSearchIngredients() throws Exception {
         ingredientRepo.save(new Ingredient("salt"));
         ingredientRepo.save(new Ingredient("pepper"));

@@ -43,6 +43,8 @@ header button:hover { background: #e55a2b; }
 .ingredient-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
 .ingredient-input-wrapper { flex: 2; position: relative; }
 .ingredient-input-wrapper input { margin-bottom: 0; }
+.ingredient-input-wrapper input.ingredient-confirmed { border-color: #4caf50; background: #f8fff8; }
+.ingredient-input-wrapper input.ingredient-unconfirmed { border-color: #ff9800; }
 .amount-input { flex: 1; }
 .remove-btn { background: #dc3545; color: white; border: none; border-radius: 8px; padding: 12px 14px; cursor: pointer; font-size: 1rem; }
 .add-ingredient-btn { background: none; border: 1px dashed #ccc; padding: 8px 16px; border-radius: 8px; cursor: pointer; color: #666; margin-bottom: 16px; width: 100%; }
@@ -51,6 +53,7 @@ header button:hover { background: #e55a2b; }
 .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .suggestion { padding: 10px 12px; cursor: pointer; }
 .suggestion:hover { background: #fff3ee; color: #ff6b35; }
+.suggestion-create { color: #ff6b35; font-style: italic; border-top: 1px solid #eee; }
 
 .ingredient-list { list-style: none; padding: 0; }
 .ingredient-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }

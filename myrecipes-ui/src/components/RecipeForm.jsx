@@ -18,7 +18,7 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [allTags, setAllTags] = useState([]);
   const [items, setItems] = useState(
-    recipe?.recipeIngredients?.map(ri => ({ name: ri.ingredient?.name || "", amount: ri.amount || "" })) || [{ name: "", amount: "" }]
+    recipe?.recipeIngredients?.map(ri => ({ name: ri.ingredient?.name || "", amount: ri.amount || "", confirmed: true })) || [{ name: "", amount: "", confirmed: false }]
   );
   const [allIngredients, setAllIngredients] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -32,6 +32,7 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
   const updateItem = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = value;
+    if (field === "name") updated[index].confirmed = false;
     setItems(updated);
     if (field === "name") {
       setActiveIndex(index);
@@ -40,12 +41,23 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
   };
 
   const selectSuggestion = (index, ingredientName) => {
-    updateItem(index, "name", ingredientName);
+    const updated = [...items];
+    updated[index].name = ingredientName;
+    updated[index].confirmed = true;
+    setItems(updated);
     setSuggestions([]);
     setActiveIndex(null);
   };
 
-  const addItem = () => setItems([...items, { name: "", amount: "" }]);
+  const confirmNewIngredient = (index) => {
+    const updated = [...items];
+    updated[index].confirmed = true;
+    setItems(updated);
+    setSuggestions([]);
+    setActiveIndex(null);
+  };
+
+  const addItem = () => setItems([...items, { name: "", amount: "", confirmed: false }]);
   const removeItem = (index) => setItems(items.filter((_, i) => i !== index));
 
   const handleTagInput = (value) => {
@@ -79,8 +91,11 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Token:", token ? "present" : "missing");
-    console.log("Visibility:", visibility);
+    const unconfirmed = items.filter(i => i.name.trim() && !i.confirmed);
+    if (unconfirmed.length > 0) {
+      alert(`Please select ingredients from the dropdown or click "+ Create" to confirm new ones: ${unconfirmed.map(i => i.name).join(", ")}`);
+      return;
+    }
     const recipeIngredients = items
       .filter(i => i.name.trim())
       .map(i => ({ ingredient: { name: i.name.trim() }, amount: i.amount }));
@@ -119,14 +134,20 @@ export default function RecipeForm({ api, recipe, onSave, onCancel, token, userN
               onChange={e => updateItem(i, "name", e.target.value)}
               onFocus={() => setActiveIndex(i)}
               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+              className={item.name.trim() ? (item.confirmed ? "ingredient-confirmed" : "ingredient-unconfirmed") : ""}
             />
-            {activeIndex === i && suggestions.length > 0 && (
+            {activeIndex === i && item.name.trim() && !item.confirmed && (
               <div className="suggestions">
                 {suggestions.map(s => (
                   <div key={s.id} className="suggestion" onMouseDown={() => selectSuggestion(i, s.name)}>
                     {s.name}
                   </div>
                 ))}
+                {!suggestions.some(s => s.name.toLowerCase() === item.name.trim().toLowerCase()) && (
+                  <div className="suggestion suggestion-create" onMouseDown={() => confirmNewIngredient(i)}>
+                    + Create "{item.name.trim()}"
+                  </div>
+                )}
               </div>
             )}
           </div>
