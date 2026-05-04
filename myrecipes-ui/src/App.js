@@ -54,6 +54,7 @@ function App() {
 
   return (
     <div className="app">
+
       <header>
         <h1 onClick={goToList}>🍳 MyRecipes</h1>
         <div className="header-actions">
@@ -61,9 +62,9 @@ function App() {
             <>
               <span className="user-name creator-link" onClick={() => goToCreatorRecipes(auth.name)}>👤 {auth.name}</span>
               {view !== "form" && <button onClick={goToAdd}>+ Add Recipe</button>}
-              <button onClick={() => setView("favorites")} className={view === "favorites" ? "active-nav" : ""}>❤️ Favorites</button>
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
+              <button onClick={() => setView("favorites")} className={view === "favorites" ? "active-nav" : ""}>❤️</button>
               <button onClick={() => setView("settings")} className="settings-btn">⚙️</button>
+              <button onClick={handleLogout} className="logout-btn">Logout</button>
             </>
           ) : (
             <button onClick={() => setView("auth")}>Login</button>
