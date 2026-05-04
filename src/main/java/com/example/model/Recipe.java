@@ -1,6 +1,7 @@
 package com.example.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +41,18 @@ public class Recipe {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() { createdAt = LocalDateTime.now(); updatedAt = createdAt; }
+
+    @PreUpdate
+    protected void onUpdate() { updatedAt = LocalDateTime.now(); }
 
     public Recipe() {}
 
@@ -85,6 +96,12 @@ public class Recipe {
 
     public List<String> getTags() { return tags; }
     public void setTags(List<String> tags) { this.tags = tags; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public List<RecipeIngredient> getRecipeIngredients() { return recipeIngredients; }
     public void setRecipeIngredients(List<RecipeIngredient> recipeIngredients) { this.recipeIngredients = recipeIngredients; }
