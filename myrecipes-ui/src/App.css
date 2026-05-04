@@ -32,6 +32,10 @@ header button:hover { background: #e55a2b; }
 .recipe-detail h3 { margin: 16px 0 8px; }
 .recipe-detail p { line-height: 1.6; white-space: pre-wrap; }
 .back-btn { background: none; border: none; cursor: pointer; font-size: 1rem; margin-bottom: 16px; color: #666; }
+.favorite-btn { background: none; border: 1px solid #ddd; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; float: right; transition: all 0.2s; }
+.favorite-btn:hover { border-color: #e74c3c; }
+.favorite-btn.favorited { background: #fde8e8; border-color: #e74c3c; color: #e74c3c; }
+.active-nav { background: #fff3ee !important; border: 1px solid #ff6b35 !important; }
 .detail-buttons { display: flex; gap: 12px; margin-top: 24px; }
 .detail-buttons button { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; background: #ff6b35; color: white; }
 .delete-btn { background: #dc3545 !important; }

@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from "react";
 
+const FAVORITES_API = `${window.location.protocol}//${window.location.hostname}:8080/api/favorites`;
+
 export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail }) {
   const [recipe, setRecipe] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
     fetch(`${api}/${id}`, { headers }).then(r => r.json()).then(setRecipe).catch(console.error);
+    if (token) {
+      fetch(`${FAVORITES_API}/${id}/check`, { headers })
+        .then(r => r.json()).then(setIsFavorite).catch(console.error);
+    }
   }, [api, id, token]);
+
+  const toggleFavorite = () => {
+    const method = isFavorite ? "DELETE" : "POST";
+    fetch(`${FAVORITES_API}/${id}`, { method, headers })
+      .then(() => setIsFavorite(!isFavorite))
+      .catch(console.error);
+  };
 
   const handleDelete = () => {
     if (window.confirm("Delete this recipe?")) {
@@ -22,6 +36,11 @@ export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail
   return (
     <div className="recipe-detail">
       <button onClick={onBack} className="back-btn">← Back</button>
+      {token && (
+        <button onClick={toggleFavorite} className={`favorite-btn ${isFavorite ? "favorited" : ""}`}>
+          {isFavorite ? "❤️ Saved" : "🤍 Save"}
+        </button>
+      )}
       {recipe.imageUrl && <img src={recipe.imageUrl.startsWith("/") ? `${window.location.protocol}//${window.location.hostname}:8080${recipe.imageUrl}` : recipe.imageUrl} alt={recipe.name} />}
       <h2>{recipe.name}</h2>
       {recipe.visibility && <p className="recipe-meta">{({PRIVATE:"🔒 Private",SHARED:"👥 Shared",PUBLIC:"🌍 Public"})[recipe.visibility]}</p>}
