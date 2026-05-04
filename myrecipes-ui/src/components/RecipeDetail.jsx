@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const FAVORITES_API = `${window.location.protocol}//${window.location.hostname}:8080/api/favorites`;
 
-export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail }) {
+export default function RecipeDetail({ api, id, onBack, onEdit, onCreatorClick, token, userEmail }) {
   const [recipe, setRecipe] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -49,7 +49,7 @@ export default function RecipeDetail({ api, id, onBack, onEdit, token, userEmail
           {recipe.tags.map(tag => <span key={tag} className="tag-badge">{tag}</span>)}
         </div>
       )}
-      {recipe.creator && <p className="recipe-meta">👤 {recipe.creator}</p>}
+      {recipe.creator && <p className="recipe-meta"><span className="creator-link" onClick={(e) => { e.stopPropagation(); onCreatorClick(recipe.creator); }}>👤 {recipe.creator}</span></p>}
       {recipe.language && <p className="recipe-meta">🌐 {recipe.language}</p>}
       {(recipe.servings || recipe.prepTimeMinutes || recipe.cookTimeMinutes) && (
         <div className="recipe-time-info">

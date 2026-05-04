@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 const INGREDIENT_API = `${window.location.protocol}//${window.location.hostname}:8080/api/ingredients`;
 const TAGS_API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes/tags`;
 
-export default function RecipeList({ api, onSelect, token }) {
+export default function RecipeList({ api, onSelect, token, initialCreator }) {
   const [recipes, setRecipes] = useState([]);
   const [search, setSearch] = useState("");
   const [ingredients, setIngredients] = useState([]);
@@ -11,8 +11,13 @@ export default function RecipeList({ api, onSelect, token }) {
   const [ingredientSearch, setIngredientSearch] = useState("");
   const [showIngredientDropdown, setShowIngredientDropdown] = useState(false);
   const [creators, setCreators] = useState([]);
-  const [filterCreator, setFilterCreator] = useState("");
-  const [creatorSearch, setCreatorSearch] = useState("");
+  const [filterCreator, setFilterCreator] = useState(initialCreator || "");
+  const [creatorSearch, setCreatorSearch] = useState(initialCreator || "");
+
+  useEffect(() => {
+    setFilterCreator(initialCreator || "");
+    setCreatorSearch(initialCreator || "");
+  }, [initialCreator]);
   const [showCreatorDropdown, setShowCreatorDropdown] = useState(false);
   const [allTags, setAllTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);

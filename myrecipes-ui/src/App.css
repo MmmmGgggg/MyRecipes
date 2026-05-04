@@ -67,6 +67,8 @@ header button:hover { background: #e55a2b; }
 
 .language-select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 12px; background: white; }
 .recipe-meta { color: #888; font-size: 0.95rem; margin-bottom: 4px; }
+.creator-link { cursor: pointer; color: #ff6b35; }
+.creator-link:hover { text-decoration: underline; }
 
 .filter-row { display: flex; gap: 12px; margin-bottom: 20px; }
 .filter-row .filter-select { margin-bottom: 0; }

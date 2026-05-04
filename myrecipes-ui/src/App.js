@@ -12,6 +12,7 @@ function App() {
   const [view, setView] = useState("list");
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [filterCreator, setFilterCreator] = useState("");
   const [auth, setAuth] = useState(() => {
     const saved = localStorage.getItem("auth");
     return saved ? JSON.parse(saved) : null;
@@ -29,7 +30,8 @@ function App() {
     setView("list");
   };
 
-  const goToList = () => { setView("list"); setEditingRecipe(null); };
+  const goToList = () => { setView("list"); setEditingRecipe(null); setFilterCreator(""); };
+  const goToCreatorRecipes = (creator) => { setFilterCreator(creator); setView("list"); };
   const goToAdd = () => { setEditingRecipe(null); setView("form"); };
   const goToEdit = (recipe) => { setEditingRecipe(recipe); setView("form"); };
   const goToDetail = (id) => { setSelectedId(id); setView("detail"); };
@@ -41,7 +43,7 @@ function App() {
         <div className="header-actions">
           {auth ? (
             <>
-              <span className="user-name">👤 {auth.name}</span>
+              <span className="user-name creator-link" onClick={() => goToCreatorRecipes(auth.name)}>👤 {auth.name}</span>
               {view !== "form" && <button onClick={goToAdd}>+ Add Recipe</button>}
               <button onClick={() => setView("favorites")} className={view === "favorites" ? "active-nav" : ""}>❤️ Favorites</button>
               <button onClick={handleLogout} className="logout-btn">Logout</button>
@@ -53,9 +55,9 @@ function App() {
       </header>
       <main>
         {view === "auth" && <AuthForm onLogin={(data) => { handleLogin(data); goToList(); }} />}
-        {view === "list" && <RecipeList api={API} onSelect={goToDetail} token={auth?.token} />}
+        {view === "list" && <RecipeList key={filterCreator} api={API} onSelect={goToDetail} token={auth?.token} initialCreator={filterCreator} />}
         {view === "form" && <RecipeForm api={API} recipe={editingRecipe} onSave={goToList} onCancel={goToList} token={auth?.token} userName={auth?.name} />}
-        {view === "detail" && <RecipeDetail api={API} id={selectedId} onBack={goToList} onEdit={goToEdit} token={auth?.token} userEmail={auth?.email} />}
+        {view === "detail" && <RecipeDetail api={API} id={selectedId} onBack={goToList} onEdit={goToEdit} onCreatorClick={goToCreatorRecipes} token={auth?.token} userEmail={auth?.email} />}
         {view === "favorites" && <FavoritesList api={FAVORITES_API} token={auth?.token} onSelect={goToDetail} />}
       </main>
     </div>
