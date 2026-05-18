@@ -1,31 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-const FAVORITES_API = `${window.location.protocol}//${window.location.hostname}:8080/api/favorites`;
+const API_BASE = process.env.REACT_APP_API_URL || `${window.location.protocol}//${window.location.hostname}:8080`;
+const FAVORITES_API = `${API_BASE}/api/favorites`;
 
 export default function RecipeDetail({ api, id, onBack, onEdit, onCreatorClick, token, userEmail }) {
   const [recipe, setRecipe] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const getHeaders = useCallback(() => {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, [token]);
 
   useEffect(() => {
+    const headers = getHeaders();
     fetch(`${api}/${id}`, { headers }).then(r => r.json()).then(setRecipe).catch(console.error);
     if (token) {
       fetch(`${FAVORITES_API}/${id}/check`, { headers })
         .then(r => r.json()).then(setIsFavorite).catch(console.error);
     }
-  }, [api, id, token]);
+  }, [api, id, token, getHeaders]);
 
   const toggleFavorite = () => {
     const method = isFavorite ? "DELETE" : "POST";
-    fetch(`${FAVORITES_API}/${id}`, { method, headers })
+    fetch(`${FAVORITES_API}/${id}`, { method, headers: getHeaders() })
       .then(() => setIsFavorite(!isFavorite))
       .catch(console.error);
   };
 
   const handleDelete = () => {
     if (window.confirm("Delete this recipe?")) {
-      fetch(`${api}/${id}`, { method: "DELETE", headers }).then(onBack).catch(console.error);
+      fetch(`${api}/${id}`, { method: "DELETE", headers: getHeaders() }).then(onBack).catch(console.error);
     }
   };
 
