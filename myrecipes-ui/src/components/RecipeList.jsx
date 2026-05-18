@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-const INGREDIENT_API = `${window.location.protocol}//${window.location.hostname}:8080/api/ingredients`;
-const TAGS_API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes/tags`;
+const API_BASE = process.env.REACT_APP_API_URL || `${window.location.protocol}//${window.location.hostname}:8080`;
+const INGREDIENT_API = `${API_BASE}/api/ingredients`;
+const TAGS_API = `${API_BASE}/api/recipes/tags`;
 
 export default function RecipeList({ api, onSelect, token, initialCreator }) {
   const [recipes, setRecipes] = useState([]);

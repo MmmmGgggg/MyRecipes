@@ -5,7 +5,8 @@ import RecipeDetail from "./components/RecipeDetail";
 import AuthForm from "./components/AuthForm";
 import "./App.css";
 
-const API = `${window.location.protocol}//${window.location.hostname}:8080/api/recipes`;
+const API_BASE = process.env.REACT_APP_API_URL || `${window.location.protocol}//${window.location.hostname}:8080`;
+const API = `${API_BASE}/api/recipes`;
 const FAVORITES_API = `${window.location.protocol}//${window.location.hostname}:8080/api/favorites`;
 const AUTH_API = `${window.location.protocol}//${window.location.hostname}:8080/api/auth`;
 
